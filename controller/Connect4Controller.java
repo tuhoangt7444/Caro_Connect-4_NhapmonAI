@@ -70,7 +70,9 @@ public class Connect4Controller {
 
         if (isHumanTurn && model.getValidLocations().contains(col)) {
             lastMoveScores = null; 
-            model.performMove(col); 
+            model.performMove(col);
+
+            gamePanel.startFallingAnimation(col); //falling animation
 
             if (model.isGameOver()) {
                 endGame();

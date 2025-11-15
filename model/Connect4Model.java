@@ -37,6 +37,10 @@ public class Connect4Model {
 
     private Stack<int[][]> boardHistory;
     private Stack<Integer> turnHistory;
+    
+    // Lưu vị trí quân mới được đặt cho animation
+    private int lastMoveRow = -1;
+    private int lastMoveCol = -1;
 
     public Connect4Model(GameMode mode, String p1Name, String p2Name) {
         this.mode = mode;
@@ -67,6 +71,10 @@ public class Connect4Model {
         int row = ai.getNextOpenRow(board, col);
         int piece = (turn == 0) ? PLAYER_PIECE : AI_PIECE;
         ai.dropPiece(board, row, col, piece);
+        
+        // Lưu vị trí quân mới cho animation
+        this.lastMoveRow = row;
+        this.lastMoveCol = col;
 
         if (ai.checkWin(board, piece)) {
             gameOver = true;
@@ -145,4 +153,8 @@ public class Connect4Model {
         if (mode == GameMode.CVC) return true;
         return false;
     }
+    
+    // Getters cho animation
+    public int getLastMoveRow() { return lastMoveRow; }
+    public int getLastMoveCol() { return lastMoveCol; }
 }

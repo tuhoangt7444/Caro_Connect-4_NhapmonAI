@@ -21,6 +21,11 @@ public class GamePanel extends JPanel {
     private final Connect4Controller controller;
     private int mouseX = 0;
     private JButton menuButton;
+    //falling animation
+    private float fallingProgress = 0;
+    private int fallingColumn = -1; // Cột đang rơi
+    private int fallingRow = -1; // Hàng quân rơi đến
+    private Timer fallingTimer;
     
     public static final int RADIUS = (int) (Connect4View.SQUARE_SIZE / 2 - 5);
 
@@ -77,6 +82,18 @@ public class GamePanel extends JPanel {
                 repaint(); 
             }
         });
+
+        // Tạo Timer để cập nhật animation
+        fallingTimer = new Timer(30, e -> {
+            if (fallingProgress < 1.0f) {
+                fallingProgress += 0.05f; // Tăng 5% mỗi frame
+                repaint();
+            } else {
+                fallingProgress = 0;
+                fallingColumn = -1;
+                fallingTimer.stop();
+            }
+        });
     }
 
     @Override
@@ -106,7 +123,20 @@ public class GamePanel extends JPanel {
                 int piece = board[r][c];
                 if (piece != Connect4Model.EMPTY) {
                     g2d.setColor((piece == Connect4Model.PLAYER_PIECE) ? Connect4View.COLOR_RED : Connect4View.COLOR_YELLOW);
-                    int y = (Connect4Model.ROW_COUNT - r) * Connect4View.SQUARE_SIZE + (Connect4View.SQUARE_SIZE - RADIUS * 2) / 2;
+
+                    // 👇 CÓ ANIMATION RƠI KHÔNG?
+                    int y;
+                    // Nếu đang animation và đây là quân mới, ẩn nó và vẽ nó rơi từ trên
+                    if (c == fallingColumn && r == fallingRow && fallingProgress < 1.0f) {
+                        // Vẽ quân rơi từ trên xuống
+                        int startY = (Connect4View.SQUARE_SIZE - RADIUS * 2) / 2; // Vị trí hàng trên cùng
+                        int targetY = (Connect4Model.ROW_COUNT - r) * Connect4View.SQUARE_SIZE + (Connect4View.SQUARE_SIZE - RADIUS * 2) / 2;
+                        y = (int) (startY + (targetY - startY) * fallingProgress);
+                    } else {
+                        // Vẽ quân bình thường
+                        y = (Connect4Model.ROW_COUNT - r) * Connect4View.SQUARE_SIZE + (Connect4View.SQUARE_SIZE - RADIUS * 2) / 2;
+                    }
+
                     int x = c * Connect4View.SQUARE_SIZE + (Connect4View.SQUARE_SIZE - RADIUS * 2) / 2;
                     g2d.fillOval(x, y, RADIUS * 2, RADIUS * 2);
                 }
@@ -158,5 +188,19 @@ public class GamePanel extends JPanel {
             int y = (Connect4View.SQUARE_SIZE - metrics.getHeight()) / 2 + metrics.getAscent();
             g2d.drawString(message, x, y);
         }
+    }
+
+    // Hàm để bắt đầu animation rơi
+    public void startFallingAnimation(int col) {
+        this.fallingColumn = col;
+        
+        // Lấy hàng của quân mới từ Model (lưu trong performMove)
+        this.fallingRow = model.getLastMoveRow();
+        
+        this.fallingProgress = 0;
+        if (fallingTimer != null && fallingTimer.isRunning()) {
+            fallingTimer.stop();
+        }
+        fallingTimer.start();
     }
 }
