@@ -30,7 +30,6 @@ public class GamePanel extends JPanel {
     private Timer blinkTimer;
     private boolean isBlinkVisible = true;
     private int blinkCount = 0;
-    private static final int BLINK_DURATION = 3000; // 3 seconds
     
     public static final int RADIUS = (int) (Connect4View.SQUARE_SIZE / 2 - 5);
     
@@ -66,6 +65,7 @@ public class GamePanel extends JPanel {
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 menuButton.setBackground(PORTAL_ORANGE);
                 menuButton.setForeground(PORTAL_DARK);
+                SoundManager.playHoverSound();
             }
             public void mouseExited(java.awt.event.MouseEvent e) {
                 menuButton.setBackground(PORTAL_BLUE);
@@ -76,7 +76,82 @@ public class GamePanel extends JPanel {
         add(menuButton);
 
         menuButton.addActionListener(e -> {
-            showGameMenu();
+            SoundManager.playClickSound();
+            // Tạo Popup Menu đẹp Portal
+            JPopupMenu popup = new JPopupMenu();
+            popup.setBackground(BOARD_BG);
+            popup.setBorder(BorderFactory.createLineBorder(PORTAL_BLUE, 2));
+
+            // 1. Nút "Tiếp tục"
+            JMenuItem continueItem = new JMenuItem("Tiếp tục");
+            continueItem.setFont(new Font("Arial", Font.BOLD, 16));
+            continueItem.setBackground(PORTAL_BLUE);
+            continueItem.setForeground(PORTAL_WHITE);
+            continueItem.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    continueItem.setBackground(PORTAL_ORANGE);
+                    continueItem.setForeground(PORTAL_DARK);
+                    SoundManager.playHoverSound();
+                }
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    continueItem.setBackground(PORTAL_BLUE);
+                    continueItem.setForeground(PORTAL_WHITE);
+                }
+            });
+            continueItem.addActionListener(ev -> {
+                SoundManager.playClickSound();
+                popup.setVisible(false);
+            });
+            
+            // 2. Nút "Quay lại 1 bước"
+            JMenuItem undoItem = new JMenuItem("Quay lại 1 bước");
+            undoItem.setFont(new Font("Arial", Font.BOLD, 16));
+            undoItem.setBackground(PORTAL_BLUE);
+            undoItem.setForeground(PORTAL_WHITE);
+            undoItem.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    undoItem.setBackground(PORTAL_ORANGE);
+                    undoItem.setForeground(PORTAL_DARK);
+                    SoundManager.playHoverSound();
+                }
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    undoItem.setBackground(PORTAL_BLUE);
+                    undoItem.setForeground(PORTAL_WHITE);
+                }
+            });
+            undoItem.addActionListener(ev -> {
+                SoundManager.playClickSound();
+                controller.handleUndo();
+            });
+            
+            // 3. Nút "Thoát"
+            JMenuItem exitItem = new JMenuItem("Thoát (Về Menu)");
+            exitItem.setFont(new Font("Arial", Font.BOLD, 16));
+            exitItem.setBackground(PORTAL_BLUE);
+            exitItem.setForeground(PORTAL_WHITE);
+            exitItem.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    exitItem.setBackground(PORTAL_ORANGE);
+                    exitItem.setForeground(PORTAL_DARK);
+                    SoundManager.playHoverSound();
+                }
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    exitItem.setBackground(PORTAL_BLUE);
+                    exitItem.setForeground(PORTAL_WHITE);
+                }
+            });
+            exitItem.addActionListener(ev -> {
+                SoundManager.playClickSound();
+                controller.handleExitToMenu();
+            });
+
+            popup.add(continueItem);
+            popup.addSeparator();
+            popup.add(undoItem);
+            popup.addSeparator();
+            popup.add(exitItem);
+            
+            popup.show(menuButton, 0, menuButton.getHeight());
         });
         addMouseListener(new MouseAdapter() {
             @Override
@@ -185,7 +260,7 @@ public class GamePanel extends JPanel {
                 }
             }
         }
-
+        
         // 3. Vẽ quân cờ mờ (preview)
         if (!model.isGameOver() && !controller.isAIThinking()) {
             Color hoverColor = null;
@@ -294,18 +369,10 @@ public class GamePanel extends JPanel {
     
     // Dialog cho người dùng chọn
     private void showGameOverDialog() {
-        String[] options = {"Chơi lại", "Quay về Menu"};
-        int choice = JOptionPane.showOptionDialog(
-            this,
-            model.getGameOverMessage(),
-            "Kết thúc game",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.INFORMATION_MESSAGE,
-            null,
-            options,
-            options[0]
-        );
+        GameOverDialog dialog = new GameOverDialog((JFrame) SwingUtilities.getWindowAncestor(this), model.getGameOverMessage());
+        dialog.setVisible(true);
         
+        int choice = dialog.getChoice();
         if (choice == 0) {
             // Chơi lại với tên cũ (không hỏi đặt tên)
             controller.restartGameWithSameName(model.getMode());
@@ -313,105 +380,5 @@ public class GamePanel extends JPanel {
             // Quay về menu
             controller.handleExitToMenu();
         }
-    }
-    
-    // Menu game đẹp
-    private void showGameMenu() {
-        JDialog dialog = new JDialog();
-        dialog.setTitle("Menu Game");
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.setModal(true);
-        dialog.setLocationRelativeTo(null);
-        dialog.setResizable(false);
-        
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Gradient background
-                GradientPaint gradient = new GradientPaint(
-                    0, 0, PORTAL_DARK,
-                    getWidth(), getHeight(), BOARD_BG
-                );
-                g2d.setPaint(gradient);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        panel.setLayout(new GridBagLayout());
-        panel.setPreferredSize(new Dimension(350, 250));
-        
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 15, 15, 15);
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-        // Title
-        JLabel title = new JLabel("MENU GAME");
-        title.setFont(new Font("Arial", Font.BOLD, 28));
-        title.setForeground(PORTAL_WHITE);
-        gbc.gridy++;
-        panel.add(title, gbc);
-        
-        // Khoảng cách
-        gbc.gridy++;
-        panel.add(Box.createVerticalStrut(10), gbc);
-        
-        // Nút 1: Tiếp tục
-        JButton continueBtn = createDialogButton("▶ Tiếp tục");
-        continueBtn.addActionListener(e -> dialog.dispose());
-        gbc.gridy++;
-        panel.add(continueBtn, gbc);
-        
-        // Nút 2: Undo
-        JButton undoBtn = createDialogButton("↶ Quay lại 1 bước");
-        undoBtn.addActionListener(e -> {
-            dialog.dispose();
-            controller.handleUndo();
-        });
-        gbc.gridy++;
-        panel.add(undoBtn, gbc);
-        
-        // Nút 3: Exit
-        JButton exitBtn = createDialogButton("⛔ Thoát (Về Menu)");
-        exitBtn.addActionListener(e -> {
-            dialog.dispose();
-            controller.handleExitToMenu();
-        });
-        gbc.gridy++;
-        panel.add(exitBtn, gbc);
-        
-        dialog.add(panel);
-        dialog.pack();
-        dialog.setVisible(true);
-    }
-    
-    // Tạo nút đẹp cho dialog menu
-    private JButton createDialogButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 18));
-        button.setBackground(PORTAL_BLUE);
-        button.setForeground(PORTAL_WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setPreferredSize(new Dimension(300, 50));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                button.setBackground(PORTAL_ORANGE);
-                button.setForeground(PORTAL_DARK);
-                button.setFont(new Font("Arial", Font.BOLD, 20));
-            }
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                button.setBackground(PORTAL_BLUE);
-                button.setForeground(PORTAL_WHITE);
-                button.setFont(new Font("Arial", Font.BOLD, 18));
-            }
-        });
-        
-        return button;
     }
 }

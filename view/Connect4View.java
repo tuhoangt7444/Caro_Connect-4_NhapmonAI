@@ -59,6 +59,10 @@ public class Connect4View {
         frame.repaint();
     }
     
+    public JFrame getFrame() {
+        return frame;
+    }
+    
     public static void main(String[] args) {
         // Chạy GUI trên luồng sự kiện
         SwingUtilities.invokeLater(Connect4View::new);

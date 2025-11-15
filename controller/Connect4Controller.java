@@ -1,13 +1,14 @@
 package controller;
 
 import javax.swing.SwingWorker;
-import javax.swing.JOptionPane;
 import java.util.Map;
 
 // Import các lớp từ các package khác
 import model.Connect4Model;
 import view.Connect4View;
 import view.GamePanel;
+import view.NameInputDialog;
+import view.SoundManager;
 
 /**
  * Lớp Controller
@@ -26,33 +27,45 @@ public class Connect4Controller {
     }
 
     public void startGame(Connect4Model.GameMode mode) { // khi bấm nút chọn chế độ
-        // --- BẮT ĐẦU THÊM CODE MỚI ---
         String p1Name = "Người 1"; // Tên mặc định
         String p2Name = "Người 2"; // Tên mặc định
 
         if (mode == Connect4Model.GameMode.PVP) {
             // Hỏi tên 2 người
-            p1Name = JOptionPane.showInputDialog(null, "Nhập tên Người 1:", "Người 1");
-            p2Name = JOptionPane.showInputDialog(null, "Nhập tên Người 2:", "Người 2");
-            if (p1Name == null || p1Name.trim().isEmpty()) p1Name = "Người 1";
-            if (p2Name == null || p2Name.trim().isEmpty()) p2Name = "Người 2";
+            NameInputDialog dialog = new NameInputDialog(view.getFrame(), "Nhập tên người chơi", "Người 1", "Người 2", "Người 1", "Người 2");
+            dialog.setVisible(true);
+            
+            if (dialog.isConfirmed()) {
+                p1Name = dialog.getPlayer1Name();
+                p2Name = dialog.getPlayer2Name();
+                if (p1Name.isEmpty()) p1Name = "Người 1";
+                if (p2Name.isEmpty()) p2Name = "Người 2";
+            } else {
+                return; // Hủy bỏ, quay về menu
+            }
 
         } else if (mode == Connect4Model.GameMode.PVE_EASY || mode == Connect4Model.GameMode.PVE_HARD) {
             // Hỏi tên 1 người, 1 máy
-            p1Name = JOptionPane.showInputDialog(null, "Nhập tên của bạn:", "Người 1");
-            if (p1Name == null || p1Name.trim().isEmpty()) p1Name = "Người 1";
+            NameInputDialog dialog = new NameInputDialog(view.getFrame(), "Nhập tên của bạn", "Tên của bạn", "", "Người chơi", "");
+            dialog.setVisible(true);
             
-            if (mode == Connect4Model.GameMode.PVE_EASY) p2Name = "Máy (Dễ)";
-            else p2Name = "Máy (Khó)";
+            if (dialog.isConfirmed()) {
+                p1Name = dialog.getPlayer1Name();
+                if (p1Name.isEmpty()) p1Name = "Người chơi";
+                
+                if (mode == Connect4Model.GameMode.PVE_EASY) p2Name = "Máy (Dễ)";
+                else p2Name = "Máy (Khó)";
+            } else {
+                return; // Hủy bỏ, quay về menu
+            }
 
         } else if (mode == Connect4Model.GameMode.CVC) {
             // Tự đặt tên cho 2 máy
             p1Name = "Máy (Dễ)";
             p2Name = "Máy (Khó)";
         }
-        // --- KẾT THÚC CODE MỚI ---
 
-        // Sửa dòng này để truyền tên vào Model
+        // Truyền tên vào Model
         startGameWithNames(mode, p1Name, p2Name);
     }
     
@@ -85,6 +98,7 @@ public class Connect4Controller {
         if (isHumanTurn && model.getValidLocations().contains(col)) {
             lastMoveScores = null; 
             model.performMove(col);
+            SoundManager.playPlacementSound(); // Thêm sound khi đặt quân
 
             gamePanel.startFallingAnimation(col); //falling animation
 
@@ -125,7 +139,9 @@ public class Connect4Controller {
                     }
 
                     if (col != -1) {
-                        model.performMove(col); 
+                        model.performMove(col);
+                        SoundManager.playPlacementSound(); // Thêm sound khi đặt quân
+                        gamePanel.startFallingAnimation(col);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -146,6 +162,7 @@ public class Connect4Controller {
     
     private void endGame() {
         // Gọi blink effect từ GamePanel thay vì auto quay về menu
+        SoundManager.playGameEndSound(); // Thêm sound khi game kết thúc
         gamePanel.startBlinkEffect();
     }
     // --- THÊM HÀM MỚI: XỬ LÝ UNDO ---
