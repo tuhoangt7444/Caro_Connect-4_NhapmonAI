@@ -84,6 +84,43 @@ public class AIPlayer {
     public boolean isTerminalNode(int[][] board) {
         return checkWin(board, Connect4Model.PLAYER_PIECE) || checkWin(board, Connect4Model.AI_PIECE) || getValidLocations(board).isEmpty();
     }
+    
+    // Tìm vị trí 4 cờ nối nhau
+    public int[][] getWinningLine(int[][] board, int piece) {
+        // Ngang
+        for (int c = 0; c < Connect4Model.COLUMN_COUNT - 3; c++) {
+            for (int r = 0; r < Connect4Model.ROW_COUNT; r++) {
+                if (board[r][c] == piece && board[r][c + 1] == piece && board[r][c + 2] == piece && board[r][c + 3] == piece) {
+                    return new int[][]{{r, c}, {r, c + 1}, {r, c + 2}, {r, c + 3}};
+                }
+            }
+        }
+        // Dọc
+        for (int c = 0; c < Connect4Model.COLUMN_COUNT; c++) {
+            for (int r = 0; r < Connect4Model.ROW_COUNT - 3; r++) {
+                if (board[r][c] == piece && board[r + 1][c] == piece && board[r + 2][c] == piece && board[r + 3][c] == piece) {
+                    return new int[][]{{r, c}, {r + 1, c}, {r + 2, c}, {r + 3, c}};
+                }
+            }
+        }
+        // Chéo dương
+        for (int r = 0; r < Connect4Model.ROW_COUNT - 3; r++) {
+            for (int c = 0; c < Connect4Model.COLUMN_COUNT - 3; c++) {
+                if (board[r][c] == piece && board[r + 1][c + 1] == piece && board[r + 2][c + 2] == piece && board[r + 3][c + 3] == piece) {
+                    return new int[][]{{r, c}, {r + 1, c + 1}, {r + 2, c + 2}, {r + 3, c + 3}};
+                }
+            }
+        }
+        // Chéo âm
+        for (int c = 0; c < Connect4Model.COLUMN_COUNT - 3; c++) {
+            for (int r = 3; r < Connect4Model.ROW_COUNT; r++) {
+                if (board[r][c] == piece && board[r - 1][c + 1] == piece && board[r - 2][c + 2] == piece && board[r - 3][c + 3] == piece) {
+                    return new int[][]{{r, c}, {r - 1, c + 1}, {r - 2, c + 2}, {r - 3, c + 3}};
+                }
+            }
+        }
+        return null;
+    }
 
     private int evaluateWindow(int[] window, int piece) {
         int score = 0;

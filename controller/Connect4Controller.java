@@ -1,7 +1,6 @@
 package controller;
 
 import javax.swing.SwingWorker;
-import javax.swing.Timer;
 import javax.swing.JOptionPane;
 import java.util.Map;
 
@@ -54,8 +53,23 @@ public class Connect4Controller {
         // --- KẾT THÚC CODE MỚI ---
 
         // Sửa dòng này để truyền tên vào Model
-        this.model = new Connect4Model(mode, p1Name, p2Name); // <--- SỬA DÒNG NÀY
-        
+        startGameWithNames(mode, p1Name, p2Name);
+    }
+    
+    // Khởi động game với tên đã biết (dùng khi chơi lại)
+    public void restartGameWithSameName(Connect4Model.GameMode mode) {
+        if (model == null) {
+            startGame(mode);
+            return;
+        }
+        String p1Name = model.getPlayer1Name();
+        String p2Name = model.getPlayer2Name();
+        startGameWithNames(mode, p1Name, p2Name);
+    }
+    
+    // Hàm riêng để khởi động game với tên đã cho
+    private void startGameWithNames(Connect4Model.GameMode mode, String p1Name, String p2Name) {
+        this.model = new Connect4Model(mode, p1Name, p2Name);
         view.showGame(model, this); 
         
         if (mode == Connect4Model.GameMode.CVC) {
@@ -70,7 +84,9 @@ public class Connect4Controller {
 
         if (isHumanTurn && model.getValidLocations().contains(col)) {
             lastMoveScores = null; 
-            model.performMove(col); 
+            model.performMove(col);
+
+            gamePanel.startFallingAnimation(col); //falling animation
 
             if (model.isGameOver()) {
                 endGame();
@@ -129,9 +145,8 @@ public class Connect4Controller {
     }
     
     private void endGame() {
-        Timer exitTimer = new Timer(3000, e -> view.showMenu()); 
-        exitTimer.setRepeats(false);
-        exitTimer.start();
+        // Gọi blink effect từ GamePanel thay vì auto quay về menu
+        gamePanel.startBlinkEffect();
     }
     // --- THÊM HÀM MỚI: XỬ LÝ UNDO ---
     public void handleUndo() {
