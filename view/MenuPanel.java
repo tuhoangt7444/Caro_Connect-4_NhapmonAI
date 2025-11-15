@@ -2,6 +2,7 @@ package view;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 
 // Import các lớp cần thiết
 import model.Connect4Model;
@@ -14,19 +15,25 @@ import controller.Connect4Controller;
 public class MenuPanel extends JPanel {
     
     private final Connect4Controller controller;
+    
+    // Portal color scheme
+    private static final Color PORTAL_BLUE = new Color(29, 99, 137);     // Xanh Portal
+    private static final Color PORTAL_ORANGE = new Color(255, 140, 0);   // Cam Portal
+    private static final Color PORTAL_WHITE = new Color(240, 240, 240);  // Trắng Portal
+    private static final Color PORTAL_DARK = new Color(20, 20, 30);      // Xám đen
 
     public MenuPanel(Connect4Controller controller) {
         this.controller = controller;
         setLayout(new GridBagLayout()); 
-        setBackground(Connect4View.COLOR_BLACK); 
+        setOpaque(false);  // Đặt thành false để paintComponent được gọi
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10); 
         gbc.gridy = 0; 
 
         JLabel title = new JLabel("CONNECT 4 AI");
-        title.setFont(new Font("Arial", Font.BOLD, 50));
-        title.setForeground(Connect4View.COLOR_WHITE); 
+        title.setFont(new Font("Arial", Font.BOLD, 60));
+        title.setForeground(PORTAL_WHITE); 
         gbc.gridy++;
         add(title, gbc);
 
@@ -69,11 +76,63 @@ public class MenuPanel extends JPanel {
 
     private JButton createMenuButton(String text) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.PLAIN, 20));
-        button.setBackground(Connect4View.COLOR_BLUE); 
-        button.setForeground(Connect4View.COLOR_WHITE); 
+        button.setFont(new Font("Arial", Font.BOLD, 22));
+        button.setBackground(PORTAL_BLUE); 
+        button.setForeground(PORTAL_WHITE);
         button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(300, 50));
+        button.setBorderPainted(false);
+        button.setPreferredSize(new Dimension(350, 60));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Hiệu ứng hover
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                button.setBackground(PORTAL_ORANGE);
+                button.setFont(new Font("Arial", Font.BOLD, 24));
+                button.setForeground(PORTAL_DARK);
+            }
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                button.setBackground(PORTAL_BLUE);
+                button.setFont(new Font("Arial", Font.BOLD, 22));
+                button.setForeground(PORTAL_WHITE);
+            }
+        });
+        
         return button;
+    }
+    
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        int width = getWidth();
+        int height = getHeight();
+        
+        // Vẽ gradient background: từ xanh Portal sang xám đen
+        GradientPaint gradient = new GradientPaint(
+            0, 0, PORTAL_DARK,
+            width, height, PORTAL_BLUE
+        );
+        g2d.setPaint(gradient);
+        g2d.fillRect(0, 0, width, height);
+        
+        // Vẽ các hình tròn trang trí (Portal aesthetic)
+        g2d.setStroke(new BasicStroke(2));
+        
+        // Hình tròn xanh góc trên trái
+        g2d.setColor(new Color(29, 99, 137, 80));
+        g2d.drawOval(-100, -100, 250, 250);
+        
+        // Hình tròn cam góc dưới phải
+        g2d.setColor(new Color(255, 140, 0, 80));
+        g2d.drawOval(width - 150, height - 150, 250, 250);
+        
+        // Hình tròn nhỏ ở giữa
+        g2d.setColor(new Color(100, 200, 255, 50));
+        g2d.drawOval(width / 2 - 100, height / 2 - 100, 200, 200);
+        
+        // Gọi super để vẽ components
+        super.paintComponent(g);
     }
 }

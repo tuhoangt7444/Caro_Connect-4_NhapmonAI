@@ -41,6 +41,9 @@ public class Connect4Model {
     // Lưu vị trí quân mới được đặt cho animation
     private int lastMoveRow = -1;
     private int lastMoveCol = -1;
+    
+    // Lưu vị trí 4 cờ nối nhau khi thắng
+    private int[][] winningLine = null;
 
     public Connect4Model(GameMode mode, String p1Name, String p2Name) {
         this.mode = mode;
@@ -79,6 +82,8 @@ public class Connect4Model {
         if (ai.checkWin(board, piece)) {
             gameOver = true;
             gameOverMessage = (piece == PLAYER_PIECE) ? (player1Name + " THẮNG!") : (player2Name + " THẮNG!");
+            // Lưu vị trí 4 cờ nối nhau
+            this.winningLine = ai.getWinningLine(board, piece);
         } else if (ai.getValidLocations(board).isEmpty()) {
             gameOver = true;
             gameOverMessage = "HÒA!";
@@ -157,4 +162,7 @@ public class Connect4Model {
     // Getters cho animation
     public int getLastMoveRow() { return lastMoveRow; }
     public int getLastMoveCol() { return lastMoveCol; }
+    public int[][] getWinningLine() { return winningLine; }
+    public String getPlayer1Name() { return player1Name; }
+    public String getPlayer2Name() { return player2Name; }
 }
