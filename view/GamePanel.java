@@ -20,6 +20,7 @@ public class GamePanel extends JPanel {
     private final Connect4Model model;
     private final Connect4Controller controller;
     private int mouseX = 0;
+    private JButton menuButton;
     
     public static final int RADIUS = (int) (Connect4View.SQUARE_SIZE / 2 - 5);
 
@@ -27,9 +28,41 @@ public class GamePanel extends JPanel {
         this.model = model;
         this.controller = controller;
 
+        setLayout(null);
+
         setPreferredSize(new Dimension(Connect4View.SCREEN_WIDTH, Connect4View.SCREEN_HEIGHT));
         setBackground(Connect4View.COLOR_BLACK);
         
+        menuButton = new JButton("☰"); // Ký tự "hamburger"
+        menuButton.setBounds(10, 10, 60, 40); // Đặt vị trí (x, y, rộng, cao)
+        menuButton.setFont(new Font("Arial", Font.BOLD, 20));
+        menuButton.setFocusable(false); // Bỏ viền xanh khi click
+        add(menuButton); // Thêm nút vào GamePanel
+
+        menuButton.addActionListener(e -> {
+            // Tạo một Popup Menu (menu con)
+            JPopupMenu popup = new JPopupMenu();
+
+            // 1. Nút "Tiếp tục"
+            JMenuItem continueItem = new JMenuItem("Tiếp tục");
+            continueItem.addActionListener(ev -> popup.setVisible(false)); // Chỉ cần ẩn menu đi
+            
+            // 2. Nút "Quay lại 1 bước" (Undo)
+            JMenuItem undoItem = new JMenuItem("Quay lại 1 bước");
+            undoItem.addActionListener(ev -> controller.handleUndo()); // Gọi Controller
+            
+            // 3. Nút "Thoát"
+            JMenuItem exitItem = new JMenuItem("Thoát (Về Menu)");
+            exitItem.addActionListener(ev -> controller.handleExitToMenu()); // Gọi Controller
+
+            // Thêm các nút vào menu
+            popup.add(continueItem);
+            popup.add(undoItem);
+            popup.add(exitItem);
+            
+            // Hiển thị menu ngay bên dưới nút "☰"
+            popup.show(menuButton, 0, menuButton.getHeight());
+        });
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {

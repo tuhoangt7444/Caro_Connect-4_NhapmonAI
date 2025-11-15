@@ -3,6 +3,7 @@ package model;
 import java.util.List;
 import java.util.Random;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * Lớp Model
@@ -28,14 +29,23 @@ public class Connect4Model {
     private int turn; 
     private boolean gameOver;
     private String gameOverMessage;
+    private String player1Name;
+    private String player2Name;
     
     private final AIPlayer ai;
     private final Random random;
 
-    public Connect4Model(GameMode mode) {
+    private Stack<int[][]> boardHistory;
+    private Stack<Integer> turnHistory;
+
+    public Connect4Model(GameMode mode, String p1Name, String p2Name) {
         this.mode = mode;
         this.ai = new AIPlayer(); 
         this.random = new Random();
+        this.player1Name = p1Name;
+        this.player2Name = p2Name;
+        this.boardHistory = new Stack<>();
+        this.turnHistory = new Stack<>();
         initializeGame();
     }
     
@@ -44,19 +54,23 @@ public class Connect4Model {
         this.turn = 0;
         this.gameOver = false;
         this.gameOverMessage = "";
+        this.boardHistory.clear();
+        this.turnHistory.clear();
     }
 
     public boolean performMove(int col) {
         if (gameOver || !ai.isValidLocation(board, col)) {
             return false;
         }
+        this.boardHistory.push(copyBoard(this.board)); // Lưu một bản sao của bàn cờ
+        this.turnHistory.push(this.turn);             // Lưu lượt đi hiện tại
         int row = ai.getNextOpenRow(board, col);
         int piece = (turn == 0) ? PLAYER_PIECE : AI_PIECE;
         ai.dropPiece(board, row, col, piece);
 
         if (ai.checkWin(board, piece)) {
             gameOver = true;
-            gameOverMessage = "Người chơi " + ((piece == PLAYER_PIECE) ? 1 : 2) + " THẮNG!";
+            gameOverMessage = (piece == PLAYER_PIECE) ? (player1Name + " THẮNG!") : (player2Name + " THẮNG!");
         } else if (ai.getValidLocations(board).isEmpty()) {
             gameOver = true;
             gameOverMessage = "HÒA!";
@@ -64,6 +78,31 @@ public class Connect4Model {
             turn = (turn + 1) % 2; 
         }
         return true;
+    }
+
+    public boolean undoLastMove() {
+        // Nếu không có gì trong lịch sử, không làm gì cả
+        if (boardHistory.isEmpty()) {
+            return false;
+        }
+        
+        // Lấy lại trạng thái cũ từ ngăn xếp
+        this.board = boardHistory.pop();
+        this.turn = turnHistory.pop();
+        
+        // Nếu game đã kết thúc, ta cũng "mở khóa" lại game
+        this.gameOver = false;
+        this.gameOverMessage = "";
+        
+        return true;
+    }
+
+    private int[][] copyBoard(int[][] original) {
+        int[][] newBoard = new int[ROW_COUNT][COLUMN_COUNT];
+        for (int r = 0; r < ROW_COUNT; r++) {
+            System.arraycopy(original[r], 0, newBoard[r], 0, COLUMN_COUNT);
+        }
+        return newBoard;
     }
 
     public Object[] getAIMoveWithScores() {

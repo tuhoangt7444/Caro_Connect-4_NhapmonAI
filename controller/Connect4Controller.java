@@ -2,6 +2,7 @@ package controller;
 
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
+import javax.swing.JOptionPane;
 import java.util.Map;
 
 // Import các lớp từ các package khác
@@ -26,10 +27,38 @@ public class Connect4Controller {
     }
 
     public void startGame(Connect4Model.GameMode mode) { // khi bấm nút chọn chế độ
-        this.model = new Connect4Model(mode); // tạo ra 1 đối tượng với với chế độ đã chọn
-        view.showGame(model, this); // chuyển cảnh theo chế độ đã chọn
+        // --- BẮT ĐẦU THÊM CODE MỚI ---
+        String p1Name = "Người 1"; // Tên mặc định
+        String p2Name = "Người 2"; // Tên mặc định
+
+        if (mode == Connect4Model.GameMode.PVP) {
+            // Hỏi tên 2 người
+            p1Name = JOptionPane.showInputDialog(null, "Nhập tên Người 1:", "Người 1");
+            p2Name = JOptionPane.showInputDialog(null, "Nhập tên Người 2:", "Người 2");
+            if (p1Name == null || p1Name.trim().isEmpty()) p1Name = "Người 1";
+            if (p2Name == null || p2Name.trim().isEmpty()) p2Name = "Người 2";
+
+        } else if (mode == Connect4Model.GameMode.PVE_EASY || mode == Connect4Model.GameMode.PVE_HARD) {
+            // Hỏi tên 1 người, 1 máy
+            p1Name = JOptionPane.showInputDialog(null, "Nhập tên của bạn:", "Người 1");
+            if (p1Name == null || p1Name.trim().isEmpty()) p1Name = "Người 1";
+            
+            if (mode == Connect4Model.GameMode.PVE_EASY) p2Name = "Máy (Dễ)";
+            else p2Name = "Máy (Khó)";
+
+        } else if (mode == Connect4Model.GameMode.CVC) {
+            // Tự đặt tên cho 2 máy
+            p1Name = "Máy (Dễ)";
+            p2Name = "Máy (Khó)";
+        }
+        // --- KẾT THÚC CODE MỚI ---
+
+        // Sửa dòng này để truyền tên vào Model
+        this.model = new Connect4Model(mode, p1Name, p2Name); // <--- SỬA DÒNG NÀY
         
-        if (mode == Connect4Model.GameMode.CVC) { // nếu là chế độ máy với máy thì gọi triggerAIMove() để AI đầu tiên bắt đầu đi
+        view.showGame(model, this); 
+        
+        if (mode == Connect4Model.GameMode.CVC) {
             triggerAIMove();
         }
     }
@@ -104,7 +133,41 @@ public class Connect4Controller {
         exitTimer.setRepeats(false);
         exitTimer.start();
     }
-    
+    // --- THÊM HÀM MỚI: XỬ LÝ UNDO ---
+    public void handleUndo() {
+        if (aiThinking) return; // Không undo khi AI đang suy nghĩ
+
+        // Nếu game vừa kết thúc, chỉ cần lùi 1 bước
+        if (model.isGameOver()) {
+            model.undoLastMove();
+            gamePanel.repaint();
+            return;
+        }
+
+        // Xử lý logic undo cho PVE (Người vs Máy)
+        if (model.getMode() == Connect4Model.GameMode.PVE_EASY || model.getMode() == Connect4Model.GameMode.PVE_HARD) {
+            // Chúng ta cần lùi 2 bước:
+            // 1. Lùi nước đi của AI
+            // 2. Lùi nước đi của Người
+            // để quay về đúng lượt của Người.
+            model.undoLastMove(); // Lùi của AI
+            model.undoLastMove(); // Lùi của Người
+        } 
+        // Xử lý cho PVP (Người vs Người)
+        else if (model.getMode() == Connect4Model.GameMode.PVP) {
+            model.undoLastMove(); // Chỉ lùi 1 bước
+        }
+        // (Chúng ta có thể bỏ qua CVC, vì undo không có nhiều ý nghĩa)
+
+        // Xóa điểm số AI cũ và vẽ lại bàn cờ
+        lastMoveScores = null;
+        gamePanel.repaint();
+    }
+
+    // --- THÊM HÀM MỚI: XỬ LÝ THOÁT VỀ MENU ---
+    public void handleExitToMenu() {
+        view.showMenu(); // Chỉ cần gọi View hiển thị lại Menu
+    } 
     public boolean isAIThinking() {
         return aiThinking;
     }
