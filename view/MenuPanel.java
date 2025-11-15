@@ -42,25 +42,37 @@ public class MenuPanel extends JPanel {
 
         // Nút 1:
         JButton pvpButton = createMenuButton("Người vs Người");
-        pvpButton.addActionListener(e -> controller.startGame(Connect4Model.GameMode.PVP)); 
+        pvpButton.addActionListener(e -> {
+            SoundManager.playClickSound();
+            controller.startGame(Connect4Model.GameMode.PVP);
+        }); 
         gbc.gridy++;
         add(pvpButton, gbc);
 
         // Nút 2:
         JButton pveEasyButton = createMenuButton("Người vs Máy (Dễ)");
-        pveEasyButton.addActionListener(e -> controller.startGame(Connect4Model.GameMode.PVE_EASY)); 
+        pveEasyButton.addActionListener(e -> {
+            SoundManager.playClickSound();
+            controller.startGame(Connect4Model.GameMode.PVE_EASY);
+        }); 
         gbc.gridy++;
         add(pveEasyButton, gbc);
 
         // Nút 3:
         JButton pveHardButton = createMenuButton("Người vs Máy (Khó)");
-        pveHardButton.addActionListener(e -> controller.startGame(Connect4Model.GameMode.PVE_HARD)); 
+        pveHardButton.addActionListener(e -> {
+            SoundManager.playClickSound();
+            controller.startGame(Connect4Model.GameMode.PVE_HARD);
+        }); 
         gbc.gridy++;
         add(pveHardButton, gbc);
 
         // Nút 4:
         JButton cvcButton = createMenuButton("Máy (Dễ) vs Máy (Khó)");
-        cvcButton.addActionListener(e -> controller.startGame(Connect4Model.GameMode.CVC)); 
+        cvcButton.addActionListener(e -> {
+            SoundManager.playClickSound();
+            controller.startGame(Connect4Model.GameMode.CVC);
+        }); 
         gbc.gridy++;
         add(cvcButton, gbc);
 
@@ -69,7 +81,10 @@ public class MenuPanel extends JPanel {
 
         // Nút 5:
         JButton quitButton = createMenuButton("Thoát");
-        quitButton.addActionListener(e -> System.exit(0));
+        quitButton.addActionListener(e -> {
+            SoundManager.playClickSound();
+            System.exit(0);
+        });
         gbc.gridy++;
         add(quitButton, gbc);
     }
@@ -90,6 +105,7 @@ public class MenuPanel extends JPanel {
                 button.setBackground(PORTAL_ORANGE);
                 button.setFont(new Font("Arial", Font.BOLD, 24));
                 button.setForeground(PORTAL_DARK);
+                SoundManager.playHoverSound();
             }
             public void mouseExited(java.awt.event.MouseEvent e) {
                 button.setBackground(PORTAL_BLUE);
