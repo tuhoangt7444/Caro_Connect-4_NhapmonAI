@@ -2,17 +2,14 @@ package model;
 
 import java.util.List;
 import java.util.Random;
-import java.util.Map;
 import java.util.Stack;
 
-/**
- * Lớp Model
- */
 public class Connect4Model {
     
-    // Hằng số
+    //Kích thước bàn cờ
     public static final int ROW_COUNT = 6;
     public static final int COLUMN_COUNT = 7;
+    //Hằng số
     public static final int EMPTY = 0;
     public static final int PLAYER_PIECE = 1;
     public static final int AI_PIECE = 2;
@@ -24,27 +21,28 @@ public class Connect4Model {
     }
     
     // Trạng thái game
-    private int[][] board;
+    private int[][] board;//Mảng 2 chiều lưu trạng thái bàn cờ
     private GameMode mode;
-    private int turn; 
-    private boolean gameOver;
+    private int turn; // lượt chơi người 1 là 0, người 2/AI là 1
+    private boolean gameOver;// để biết game kết thức chưa
     private String gameOverMessage;
     private String player1Name;
     private String player2Name;
     
-    private final AIPlayer ai;
-    private final Random random;
+    private final AIPlayer ai;// Đối tượng AI để xử lý logic
+    private final Random random;// Để chọn nước đi ngẫu nhiên
 
-    private Stack<int[][]> boardHistory;
-    private Stack<Integer> turnHistory;
+    private Stack<int[][]> boardHistory; // Lưu lịch sử bàn cờ để undo
+    private Stack<Integer> turnHistory; // Lưu lịch sử lượt chơi để undo
     
     // Lưu vị trí quân mới được đặt cho animation
     private int lastMoveRow = -1;
     private int lastMoveCol = -1;
     
     // Lưu vị trí 4 cờ nối nhau khi thắng
-    private int[][] winningLine = null;
+    private int[][] winningLine = null; 
 
+    // hàm khởi tạo
     public Connect4Model(GameMode mode, String p1Name, String p2Name) {
         this.mode = mode;
         this.ai = new AIPlayer(); 
@@ -53,11 +51,11 @@ public class Connect4Model {
         this.player2Name = p2Name;
         this.boardHistory = new Stack<>();
         this.turnHistory = new Stack<>();
-        initializeGame();
+        initializeGame();// gọi hàm tạo ván mới
     }
     
     public void initializeGame() {
-        this.board = ai.createBoard();
+        this.board = ai.createBoard();// tạo bàn cờ mới
         this.turn = 0;
         this.gameOver = false;
         this.gameOverMessage = "";
@@ -66,13 +64,13 @@ public class Connect4Model {
     }
 
     public boolean performMove(int col) {
-        if (gameOver || !ai.isValidLocation(board, col)) {
+        if (gameOver || !ai.isValidLocation(board, col)) { // nếu game kết thúc hoặc cột đó đầy thì không làm gì
             return false;
         }
         this.boardHistory.push(copyBoard(this.board)); // Lưu một bản sao của bàn cờ
         this.turnHistory.push(this.turn);             // Lưu lượt đi hiện tại
-        int row = ai.getNextOpenRow(board, col);
-        int piece = (turn == 0) ? PLAYER_PIECE : AI_PIECE;
+        int row = ai.getNextOpenRow(board, col); // tìm hàng trống tiếp theo trong cột
+        int piece = (turn == 0) ? PLAYER_PIECE : AI_PIECE; // xác định quân cờ của người chơi hiện tại
         ai.dropPiece(board, row, col, piece);
         
         // Lưu vị trí quân mới cho animation
@@ -84,10 +82,10 @@ public class Connect4Model {
             gameOverMessage = (piece == PLAYER_PIECE) ? (player1Name + " THẮNG!") : (player2Name + " THẮNG!");
             // Lưu vị trí 4 cờ nối nhau
             this.winningLine = ai.getWinningLine(board, piece);
-        } else if (ai.getValidLocations(board).isEmpty()) {
+        } else if (ai.getValidLocations(board).isEmpty()) { // nếu không còn nước đi hợp lệ nào
             gameOver = true;
             gameOverMessage = "HÒA!";
-        } else {
+        } else { // Chuyển lượt
             turn = (turn + 1) % 2; 
         }
         return true;
@@ -110,7 +108,8 @@ public class Connect4Model {
         return true;
     }
 
-    private int[][] copyBoard(int[][] original) {
+    // lý do có nếu chỉ viết boardHistory.push(this.board), Java sẽ chỉ lưu địa chỉ của bàn cờ.
+    private int[][] copyBoard(int[][] original) { // Tạo bản sao của bàn cờ
         int[][] newBoard = new int[ROW_COUNT][COLUMN_COUNT];
         for (int r = 0; r < ROW_COUNT; r++) {
             System.arraycopy(original[r], 0, newBoard[r], 0, COLUMN_COUNT);
@@ -145,12 +144,12 @@ public class Connect4Model {
     }
 
     // Getters
-    public int[][] getBoard() { return board; }
-    public GameMode getMode() { return mode; }
-    public int getTurn() { return turn; }
-    public boolean isGameOver() { return gameOver; }
-    public String getGameOverMessage() { return gameOverMessage; }
-    public List<Integer> getValidLocations() { return ai.getValidLocations(board); }
+    public int[][] getBoard() { return board; } // trả về trạng thái bàn cờ
+    public GameMode getMode() { return mode; } // trả về chế độ chơi
+    public int getTurn() { return turn; } // trả về lượt chơi hiện tại
+    public boolean isGameOver() { return gameOver; } // trả về trạng thái kết thúc game
+    public String getGameOverMessage() { return gameOverMessage; } // trả về thông điệp kết thúc game
+    public List<Integer> getValidLocations() { return ai.getValidLocations(board); } // trả về danh sách cột hợp lệ
 
     public boolean isAITurn() {
         if (gameOver) return false;

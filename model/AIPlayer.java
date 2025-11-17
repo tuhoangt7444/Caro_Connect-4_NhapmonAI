@@ -6,26 +6,23 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
 
-/**
- * Lớp AIPlayer (nằm trong package 'model')
- */
 public class AIPlayer {
     private Random random = new Random();
 
-    public int[][] createBoard() {
-        // Tham chiếu đến hằng số của Connect4Model (cùng package)
+    // Tạo bàn cờ mới
+    public int[][] createBoard() { 
         return new int[Connect4Model.ROW_COUNT][Connect4Model.COLUMN_COUNT];
     }
-
+    // Đặt quân cờ vào bàn cờ
     public void dropPiece(int[][] board, int row, int col, int piece) {
         board[row][col] = piece;
     }
-
+    // Kiểm tra cột có ở ngoài biên không và có hợp lệ không chỉ hợp lệ khi hành trên cùng chưa có gì
     public boolean isValidLocation(int[][] board, int col) {
         if (col < 0 || col >= Connect4Model.COLUMN_COUNT) return false;
         return board[Connect4Model.ROW_COUNT - 1][col] == Connect4Model.EMPTY;
     }
-
+    // Tìm hàng trống tiếp theo trong cột
     public int getNextOpenRow(int[][] board, int col) {
         for (int r = 0; r < Connect4Model.ROW_COUNT; r++) {
             if (board[r][col] == Connect4Model.EMPTY) {
@@ -34,7 +31,7 @@ public class AIPlayer {
         }
         return -1;
     }
-
+    // Kiểm tra thắng
     public boolean checkWin(int[][] board, int piece) {
         // Ngang
         for (int c = 0; c < Connect4Model.COLUMN_COUNT - 3; c++) {
@@ -71,21 +68,23 @@ public class AIPlayer {
         return false;
     }
 
+    // Lấy danh sách các cột hợp lệ
     public List<Integer> getValidLocations(int[][] board) {
-        List<Integer> validLocations = new ArrayList<>();
-        for (int col = 0; col < Connect4Model.COLUMN_COUNT; col++) {
-            if (isValidLocation(board, col)) {
+        List<Integer> validLocations = new ArrayList<>(); // danh sách cột hợp lệ
+        for (int col = 0; col < Connect4Model.COLUMN_COUNT; col++) { // duyệt qua tất cả các cột
+            if (isValidLocation(board, col)) { 
                 validLocations.add(col);
             }
         }
         return validLocations;
     }
 
+    // Kiểm tra trạng thái kết thúc
     public boolean isTerminalNode(int[][] board) {
         return checkWin(board, Connect4Model.PLAYER_PIECE) || checkWin(board, Connect4Model.AI_PIECE) || getValidLocations(board).isEmpty();
     }
     
-    // Tìm vị trí 4 cờ nối nhau
+    // Tìm vị trí 4 cờ nối nhau giống check win nhưng trả về mảng tọa độ đễ view vẽ đường gạch thắng
     public int[][] getWinningLine(int[][] board, int piece) {
         // Ngang
         for (int c = 0; c < Connect4Model.COLUMN_COUNT - 3; c++) {
@@ -121,7 +120,7 @@ public class AIPlayer {
         }
         return null;
     }
-
+    // Đánh giá một cửa sổ 4 ô để tính điểm
     private int evaluateWindow(int[] window, int piece) {
         int score = 0;
         int oppPiece = (piece == Connect4Model.PLAYER_PIECE) ? Connect4Model.AI_PIECE : Connect4Model.PLAYER_PIECE;
@@ -141,10 +140,11 @@ public class AIPlayer {
         if (oppPieceCount == 3 && emptyCount == 1) score -= 80;
         return score;
     }
-
+    // Tính điểm cho toàn bộ bàn cờ
     public int scorePosition(int[][] board, int piece) {
         int score = 0;
         int centerCount = 0;
+        // Ưu tiên cột giữa
         for (int r = 0; r < Connect4Model.ROW_COUNT; r++) {
             if (board[r][Connect4Model.COLUMN_COUNT / 2] == piece) centerCount++;
         }
@@ -177,12 +177,12 @@ public class AIPlayer {
         }
         return score;
     }
-
+    // Tìm nước đi tốt nhất và điểm của tất cả các nước đi
     public Object[] getBestMoveAndAllScores(int[][] board, int depth, boolean maximizingPlayer) {
-        Map<Integer, Integer> scores = new HashMap<>();
-        List<Integer> validLocations = getValidLocations(board);
-        if (validLocations.isEmpty()) return new Object[]{-1, scores};
-        int bestColumn = validLocations.get(random.nextInt(validLocations.size()));
+        Map<Integer, Integer> scores = new HashMap<>();// bản đồ cột và điểm tương ứng
+        List<Integer> validLocations = getValidLocations(board); // lấy danh sách các cột hợp lệ
+        if (validLocations.isEmpty()) return new Object[]{-1, scores}; // nếu không có cột hợp lệ, trả về -1
+        int bestColumn = validLocations.get(random.nextInt(validLocations.size())); // chọn ngẫu nhiên cột hợp lệ ban đầu
         int bestValue;
 
         if (maximizingPlayer) {

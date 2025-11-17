@@ -31,7 +31,7 @@ public class MenuPanel extends JPanel {
         gbc.insets = new Insets(10, 10, 10, 10); 
         gbc.gridy = 0; 
 
-        JLabel title = new JLabel("CONNECT 4 AI");
+        JLabel title = new JLabel("CARO CONNECT 4");
         title.setFont(new Font("Arial", Font.BOLD, 60));
         title.setForeground(PORTAL_WHITE); 
         gbc.gridy++;

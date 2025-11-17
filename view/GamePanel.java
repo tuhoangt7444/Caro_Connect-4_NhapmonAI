@@ -275,7 +275,7 @@ public class GamePanel extends JPanel {
             }
         }
 
-        // 4. Vẽ điểm số
+        /*4. Vẽ điểm số
         Map<Integer, Integer> moveScores = controller.getLastMoveScores();
         if (moveScores != null && !moveScores.isEmpty()) {
             g2d.setFont(new Font("Arial", Font.BOLD, 16));
@@ -293,7 +293,7 @@ public class GamePanel extends JPanel {
                 g2d.drawString(scoreStr, x, y);
             }
         }
-
+        */
         // 5. Vẽ thông báo kết thúc game
         if (model.isGameOver()) {
             // Highlight 4 cờ nối nhau khi blink
